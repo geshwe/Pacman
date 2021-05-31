@@ -1,20 +1,32 @@
 import { GameObjects } from "phaser";
+import { PacmanClass } from './Pacman'
 
 var upKey;
 var downKey;
 var leftKey;
 var rightKey;
-var player
+var enter;
+var escape;
+
+var start: boolean = false;
+
+function grid(x){
+    var y: number;
+    if(x <= 31) {
+        y = x * 32 -16;
+    }
+    if (x > 31) {
+        y = (x + 16) /32
+    }        
+    return y;
+}
+
 
 class Main extends Phaser.Scene {
-    //grid 28x31 - 32x32 squares
-    
-    private pacman = {
-        x: 15,
-        y: 24,
-        velocity: 0,
-        direction: 'left'
-    }
+    pacman = new PacmanClass();
+    public player
+    private dir:number;
+    //grid 28x31 - 32x32 pixel squares
     
     constructor() {
         super("main");
@@ -23,54 +35,51 @@ class Main extends Phaser.Scene {
     preload() {
         this.load.image('Grid', 'assets/Grid.png');
         this.load.image('Level', 'assets/Level.png');
-        this.load.image('Pacman' , 'assets/Pacman.png');
+        this.load.spritesheet('Pacman' , 'assets/Pacman.png', {frameWidth: 64,frameHeight: 64});
+        
+        
     }
     create() {
+        
         upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+        enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+        escape = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+        start = false
+
 
         this.add.image(448,496,'Grid');
         this.add.image(448,496,'Level');
-        player = this.add.image(this.pacman.x * 32 - 16, this.pacman.y * 32 - 16, 'Pacman');
+        this.player = this.add.sprite(grid(15), grid(24), 'Pacman');
+        this.anims.create({
+            key: 'eat',
+            repeat: -1,
+            frameRate: 6,
+            frames: this.anims.generateFrameNames('Pacman', {start: 0, end: 3})
+        })
+        this.player.play('eat')
+        
+        
 
     }
 
     update() {
-        if (upKey.isDown) {
-            this.pacman.direction = 'up'
+        if (enter.isDown == true){
+            if(start == true){
+                start = false
+            }
+            if (start == false){
+                start = true
+            }
         }
-        if (downKey.isDown) {
-            this.pacman.direction = 'down'
+        if (start == true){
+            this.dir = this.pacman.move(this.player,upKey, leftKey , downKey ,rightKey);
+            this.player.angle = this.dir;
         }
-        if (leftKey.isDown) {
-            this.pacman.direction = 'left'
-        }
-        if (rightKey.isDown) {
-            this.pacman.direction = 'right'
-        }
-        console.log(this.pacman.direction)
-        
-        if (this.pacman.direction == 'up') {
-            player.angle = 270
-        }
-        if (this.pacman.direction == 'down') {
-            player.angle = 90
-        }
-        if (this.pacman.direction == 'left') {
-            player.angle = 180
-        }
-        if (this.pacman.direction == 'up') {
-            player.angle = 0
-        }
-
-        this.add.image(448,496,'Grid');
-        this.add.image(448,496,'Level');
-        player = this.add.image(this.pacman.x * 32 - 16, this.pacman.y * 32 - 16, 'Pacman');
-
+        console.log(grid(this.player.x) + " ,  " + this.player.x + "/b   " + grid(this.player.y) + " ,  " + this.player.y)
     }
- 
 }
 
 export { Main }
